@@ -47,7 +47,7 @@ Tip_Cut_One = cq.Workplane("XY").workplane(Track_Height/2).center(Tip_Length/5, 
 Tip_Cut_Box = cq.Workplane("XY").center(Tip_Length/2, 0).box(Tip_Length/2,Tip_Width,Track_Height).cut(Tip_Cut_One);
 
 Tip_Cut_Two = Tip_Cut_Box.faces("<X").workplane().rect(Tip_Width,Tip_Height)
-if DEBUG_MODE == True: debug(Tip_Cut_Two, name='Line Art');
+if DEBUG_MODE == True: debug(Tip_Cut_Two);
 
 Tip_Block = cq.Workplane("XY").center(0, 0)\
     .box(Tip_Length, Tip_Width, Track_Height);
