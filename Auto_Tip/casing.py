@@ -16,7 +16,7 @@ Track_Height = 18
 Track_Width = 45
 Track_Steel_Width = 0.5;
 
-Tip_Length = 100;
+Tip_Length = 101;
 Tip_Width_Extra = 10;
 Tip_Height = Track_Height
 
