@@ -22,8 +22,8 @@ Tip_Width_Extra = 10;
 Tip_Angle_Length = 30;
 Tip_Height = Track_Height
 
-Tip_Angle_One = 12;
-Tip_Angle_Two = 28.4;
+Tip_Front_Angle = 12;
+Tip_Top_Angle = 28.4;
 
 # --------------------------------- precalulated
 
@@ -36,30 +36,18 @@ Track  = cq.Workplane("XY").moveTo(Tip_Angle_Length,0).box(Tip_Length * 2, Track
 
 # if DEBUG_MODE == True: debug(Track, name='Track');
 
+Tip_Cut_Block = cq.Workplane("XY").moveTo(0,-Tip_Width_Extra).box(Tip_Length, Tip_Width, Tip_Height, centered=[False,False,False]);
 
+Tip_Front_Cut = cq.Workplane("XY").moveTo(-Tip_Length,-Tip_Width_Extra).box(Tip_Length, Tip_Width*2, Tip_Height, centered=[False,False,False])\
+    .rotate([0,-Tip_Width_Extra,-1],[0,-Tip_Width_Extra,1], -Tip_Front_Angle);
 
-#Square_Side = Tip_Length / 2 -Tip_Length/5;
+# if DEBUG_MODE == True: debug(Tip_Front_Cut, name='Tip_Front_Cut');
 
-Tip_Block = cq.Workplane("XY").moveTo(0,-Tip_Width_Extra).box(Tip_Length, Tip_Width, Tip_Height, centered=[False,False,False]);
+Tip_Block = Tip_Cut_Block.cut(Track).cut(Tip_Front_Cut);
 
-Tip_Cut_One = cq.Workplane("XY").moveTo(0,-Tip_Width_Extra).box(Tip_Length, Tip_Width, Tip_Height, centered=[False,False,False])\
-    .rotate([0,-1,0],[0,1,0], -Tip_Angle_Two);
-debug(Tip_Cut_One);
+Cut_Edge = Tip_Block.vertices("(<<X[-2] or <<X) and <Z");
 
-Tip_Cut_Two = cq.Workplane("XY").moveTo(0,-Tip_Width_Extra).box(Tip_Length, Tip_Width, Tip_Height, centered=[False,False,False])\
-    .rotate([0,-Tip_Width_Extra,-1],[0,-Tip_Width_Extra,1], Tip_Angle_Two);
-debug(Tip_Cut_Two);
-#Tip_Cut_Box = cq.Workplane("XY").center(Tip_Length/2, 0).box(Tip_Length/2,Tip_Width,Track_Height).cut(Tip_Cut_One);
-
-#Tip_Cut_Two = Tip_Cut_Box.faces("<X").workplane().rect(Tip_Width,Tip_Height)
-#if DEBUG_MODE == True: debug(Tip_Cut_Two);
-
-#Tip_Block = cq.Workplane("XY").center(0, 0)\
-#    .box(Tip_Length, Tip_Width, Track_Height);
-
-#Auto_Tip = Tip_Block.cut(Track).cut(Tip_Cut_Box);
-
-
+debug(Cut_Edge, name='cut edge');
 
 show_object(Tip_Block, name='Printed_Tip', options=dict(color='#3333CC'));
-show_object(Track, name='Profile', options=dict(color='#333333'));
+#show_object(Track, name='Profile', options=dict(color='#333333'));
