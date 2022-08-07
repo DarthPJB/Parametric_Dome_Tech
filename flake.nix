@@ -6,23 +6,32 @@
   };
 
   outputs = { cqdev, self, nixpkgs }:
-  with import nixpkgs { system = "x86_64-linux"; };
+  let 
+    pkgs = nixpkgs.legacyPackages."x86_64-linux";
+  in
   {
     # Fast preview for current configuration
     apps."x86_64-linux".PreviewDome = 
+    let
+      preview_script = pkgs.writeShellApplication
+      {
+        name = "PreviewDome.sh";
+        runtimeInputs = 
+        [ 
+          # Marcus cq-dev flake used to bring in the CQ enviroment
+          cqdev.outputs.packages."x86_64-linux".cadquery-env 
+          # FastSTL for preview
+          pkgs.fstl
+        ];
+        text = ''
+          python full_model_generation.py
+          fstl output/*.stl
+        '';
+      };
+    in
     {
       type = "app";
-      buildInputs = 
-      [ 
-        # Marcus cq-dev flake used to bring in the CQ enviroment
-        cqdev.outputs.packages."x86_64-linux".cadquery-env 
-        # FastSTL for preview
-        pkgs.fstl
-      ];
-      program = nixpkgs.writeShellScriptBin "PreviewDome.sh" ''
-        python full_model_generation.py
-        fstl output/*.stl
-      '';
+      program = "${preview_script}/bin/PreviewDome.sh";
     };
 
 
@@ -54,7 +63,7 @@
     };
 
     # generate final output stl files
-    packages."x86_64-linux".cqgen = stdenv.mkDerivation 
+    packages."x86_64-linux".cqgen = pkgs.stdenv.mkDerivation 
     {
       name = "cqgen";
       src = self;
@@ -63,8 +72,8 @@
       dontPatch = true;
       buildPhase = ''
         python full_model_generation.py
-        mkdir -p $out/john_is_cool
-        mv output/*.stl $out/john_is_cool
+        mkdir -p $out
+        mv output/*.stl $out/
       '';
     };
 
