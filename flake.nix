@@ -6,20 +6,20 @@
   };
 
   outputs = { cqdev, self, nixpkgs }:
-  let 
+  let
     pkgs = nixpkgs.legacyPackages."x86_64-linux";
   in
   {
     # Fast preview for current configuration
-    apps."x86_64-linux".PreviewDome = 
+    apps."x86_64-linux".PreviewDome =
     let
       preview_script = pkgs.writeShellApplication
       {
         name = "PreviewDome.sh";
-        runtimeInputs = 
-        [ 
+        runtimeInputs =
+        [
           # Marcus cq-dev flake used to bring in the CQ enviroment
-          cqdev.outputs.packages."x86_64-linux".cadquery-env 
+          cqdev.outputs.packages."x86_64-linux".cadquery-env
           # FastSTL for preview
           pkgs.fstl
         ];
@@ -36,12 +36,14 @@
 
 
     # devshell for quick development
-    devShell."x86_64-linux" = pkgs.mkShell 
+    devShell."x86_64-linux" = pkgs.mkShell
     {
-      buildInputs = 
+      buildInputs =
       [
         # Marcus cq-dev flake used to bring in the CQ enviroment
-        cqdev.outputs.packages."x86_64-linux".cadquery-env 
+        cqdev.outputs.packages."x86_64-linux".cadquery-env
+        # Marcus cq flake also provides Cadquery editor
+        cqdev.outputs.packages."x86_64-linux".cq-editor
         # FastSTL viewer to view resulting STL files
         pkgs.fstl
         # Inkscape for the inkview package (fast SVG viewer)
@@ -63,11 +65,14 @@
     };
 
     # generate final output stl files
-    packages."x86_64-linux".cqgen = pkgs.stdenv.mkDerivation 
+    packages."x86_64-linux".cqgen = pkgs.stdenv.mkDerivation
     {
       name = "cqgen";
       src = self;
-      buildInputs = [ cqdev.outputs.packages."x86_64-linux".cadquery-env ];
+      buildInputs =
+      [
+        cqdev.outputs.packages."x86_64-linux".cadquery-env
+      ];
       dontInstall = true;
       dontPatch = true;
       buildPhase = ''
