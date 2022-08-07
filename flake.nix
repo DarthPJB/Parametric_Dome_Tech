@@ -27,7 +27,9 @@
         ];
         text = ''
           python full_model_generation.py
-          fstl output/*.stl
+          for filename in output/*.stl; do
+            fstl "$filename" &
+          done
         '';
       };
     in

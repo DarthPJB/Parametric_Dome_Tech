@@ -41,13 +41,13 @@ Tip_Cut_Block = cq.Workplane("XY").moveTo(0,-Tip_Width_Extra).box(Tip_Length, Ti
 Tip_Front_Cut = cq.Workplane("XY").moveTo(-Tip_Length,-Tip_Width_Extra).box(Tip_Length, Tip_Width*2, Tip_Height, centered=[False,False,False])\
     .rotate([0,-Tip_Width_Extra,-1],[0,-Tip_Width_Extra,1], -Tip_Front_Angle);
 
-# if DEBUG_MODE == True: debug(Tip_Front_Cut, name='Tip_Front_Cut');
+#if DEBUG_MODE == True: debug(Tip_Front_Cut, name='Tip_Front_Cut');
 
 Tip_Block = Tip_Cut_Block.cut(Track).cut(Tip_Front_Cut);
 
 Cut_Edge = Tip_Block.vertices("(<<X[-2] or <<X) and <Z");
 
-debug(Cut_Edge, name='cut edge');
+#debug(Cut_Edge, name='cut edge');
 
 show_object(Tip_Block, name='Printed_Tip', options=dict(color='#3333CC'));
-#show_object(Track, name='Profile', options=dict(color='#333333'));
+show_object(Track, name='Profile', options=dict(color='#333333'));
