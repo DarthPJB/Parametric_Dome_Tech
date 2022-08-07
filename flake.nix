@@ -8,6 +8,8 @@
   outputs = { cqdev, self, nixpkgs }:
   let
     pkgs = nixpkgs.legacyPackages."x86_64-linux";
+    defaultFileForCQ = "./Auto_Tip/casing.py";
+    previewScriptName = "PreviewDome.sh";
   in
   {
     # Fast preview for current configuration
@@ -15,7 +17,7 @@
     let
       preview_script = pkgs.writeShellApplication
       {
-        name = "PreviewDome.sh";
+        name = previewScriptName;
         runtimeInputs =
         [
           # Marcus cq-dev flake used to bring in the CQ enviroment
@@ -31,7 +33,7 @@
     in
     {
       type = "app";
-      program = "${preview_script}/bin/PreviewDome.sh";
+      program = "${preview_script}/bin/${previewScriptName}";
     };
 
 
@@ -58,7 +60,7 @@
         figlet "Shell Active:"
         echo "starting editors"
         atom ./ --no-sandbox
-        cq-editor ./Auto_Tip/casing.py &
+        cq-editor ${defaultFileForCQ} &
         echo "to begin build sequence; run -"
         echo "nix run .#PreviewDome"
     '';
