@@ -2,41 +2,90 @@
   inputs =
   {
     cqdev.url = "github:marcus7070/cq-flake";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
   };
 
   outputs = { cqdev, self, nixpkgs }:
+  let
+    pkgs = nixpkgs.legacyPackages."x86_64-linux";
+    defaultFileForCQ = "./Auto_Tip/casing.py";
+    previewScriptName = "PreviewDome.sh";
+  in
+  {
+    # Fast preview for current configuration
+    apps."x86_64-linux".PreviewDome =
     let
-      # Generate a user-friendly version numer.
-      version = builtins.substring 0 8 self.lastModifiedDate;
-      # System types to support.
-      supportedSystems = [ "x86_64-linux" "x86_64-darwin" ];
-      # Helper function to generate an attrset '{ x86_64-linux = f "x86_64-linux"; ... }'.
-      forAllSystems = f: nixpkgs.lib.genAttrs supportedSystems (system: f system);
-      # Nixpkgs instantiated for supported system types.
-      nixpkgsFor = forAllSystems (system: import nixpkgs { inherit system; overlays = [ self.overlay ]; });
+      preview_script = pkgs.writeShellApplication
+      {
+        name = previewScriptName;
+        runtimeInputs =
+        [
+          # Marcus cq-dev flake used to bring in the CQ enviroment
+          cqdev.outputs.packages."x86_64-linux".cadquery-env
+          # FastSTL for preview
+          pkgs.fstl
+        ];
+        text = ''
+          python full_model_generation.py
+          for filename in output/*.stl; do
+            fstl "$filename" &
+          done
+        '';
+      };
     in
     {
-      overlay = final: prev: {
-        cqgen = final.stdenv.mkDerivation rec {
-          name = "cqgen";
-          src = self;
-          buildInputs = [ cqdev.outputs.packages.${final.system}.cadquery-env ];
-          dontInstall = true;
-          dontPatch = true;
-          buildPhase = ''
-            python full_model_generation.py
-            mkdir -p $out/john_is_cool
-            mv output/*.stl $out/john_is_cool
-          '';
-        };
-      };
-
-      packages = forAllSystems (system:
-        {
-          inherit (nixpkgsFor.${system}) cqgen;
-        });
-
-      defaultPackage = forAllSystems (system: self.packages.${system}.cqgen);
-
+      type = "app";
+      program = "${preview_script}/bin/${previewScriptName}";
     };
+
+
+    # devshell for quick development
+    devShell."x86_64-linux" = pkgs.mkShell
+    {
+      buildInputs =
+      [
+        # Marcus cq-dev flake used to bring in the CQ enviroment
+        cqdev.outputs.packages."x86_64-linux".cadquery-env
+        # Marcus cq flake also provides Cadquery editor
+        cqdev.outputs.packages."x86_64-linux".cq-editor
+        # FastSTL viewer to view resulting STL files
+        pkgs.fstl
+        # Inkscape for the inkview package (fast SVG viewer)
+        pkgs.inkscape
+        # atom and vim for effective code editing
+        pkgs.atom pkgs.vim
+        # figlet for attractive messages
+        pkgs.figlet
+      ];
+
+    shellHook = ''
+        figlet "Shell Active:"
+        echo "starting editors"
+        atom ./ --no-sandbox
+        cq-editor ${defaultFileForCQ} &
+        echo "to begin build sequence; run -"
+        echo "nix run .#PreviewDome"
+    '';
+    };
+
+    # generate final output stl files
+    packages."x86_64-linux".cqgen = pkgs.stdenv.mkDerivation
+    {
+      name = "cqgen";
+      src = self;
+      buildInputs =
+      [
+        cqdev.outputs.packages."x86_64-linux".cadquery-env
+      ];
+      dontInstall = true;
+      dontPatch = true;
+      buildPhase = ''
+        python full_model_generation.py
+        mkdir -p $out
+        mv output/*.stl $out/
+      '';
+    };
+
+    defaultPackage."x86_64-linux" = self.packages."x86_64-linux".cqgen;
+  };
 }
