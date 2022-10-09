@@ -1,3 +1,4 @@
 output/*.stl
 result
 result/*
+*/__pycache__/*
